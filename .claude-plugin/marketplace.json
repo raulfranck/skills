@@ -1,0 +1,15 @@
+{
+  "name": "raulfranck",
+  "owner": {
+    "name": "raulfranck"
+  },
+  "description": "Skills para agentes de código, organizadas por área.",
+  "plugins": [
+    {
+      "name": "raulfranck-skills",
+      "source": "./",
+      "description": "Skills para agentes de código, organizadas por área. reverse-engineer: engenharia reversa de um ou mais repositórios com subagentes especialistas, gerando um modelo do sistema baseado em evidências.",
+      "category": "development"
+    }
+  ]
+}
