@@ -15,5 +15,5 @@ The first pilot runs produced a correct but unreadable report: twelve sections o
 ## Consequences
 
 - Diagrams use Mermaid from a CDN; offline, the page shows the diagram source instead.
-- Findings stay in English and show as such in the appendix; only the report body is in the reader's language.
+- Findings are written in the report language, because the appendix shows them as written; `reveng.py check` warns about findings that slipped into another language.
 - The editor adds one sonnet run to every analysis.

@@ -11,6 +11,7 @@ Every worker in a reverse-engineer run follows this protocol. It turns reading c
 - **Triangulate.** A behaviour seen in code, configuration and tests is stronger than one seen in one place. Say which sources agree.
 - **Quote code, never secrets.** Replace any credential, token, key or personal data inside a quote with `<REDACTED>`. Refer to secrets by their variable name.
 - **Absence is a finding.** "No timeout on the payments client" matters. Record the search that established it.
+- **Write in the report language.** Every text a person may read (`claim`, `reasoning`, `how_to_verify`, `why_unknown`, the narrative, verdict reasons) is written in the report language named in your brief, because the evidence appendix of the final report shows it as written. Identifiers stay as they are in the code; field names and enum values (`lens`, `kind`, `certainty`, `impact`) stay in English.
 
 ## Certainty
 
@@ -34,7 +35,7 @@ One JSON object per line (JSON Lines), in the findings file your brief names.
 | `kind` | One of the kinds listed in the lens guide |
 | `certainty` | `fact`, `inference`, `hypothesis` or `unknown` |
 | `impact` | `high`, `medium` or `low`: how much it matters to someone who must understand or change the system |
-| `claim` | One or two specific sentences, in English |
+| `claim` | One or two specific sentences, in the report language |
 | `evidence` | List of evidence items (below) |
 | `based_on` | Finding IDs this claim builds on |
 | `reasoning`, `how_to_verify`, `why_unknown` | As the certainty table requires |
@@ -53,13 +54,13 @@ Evidence items take one of four forms:
 - `quote` is copied verbatim from inside those lines, about 200 characters at most. Mark a gap with `...` and a secret with `<REDACTED>`.
 - Cite one to three items per finding: the strongest ones.
 
-Examples, one per certainty:
+Examples, one per certainty, for a `pt-BR` report:
 
 ```json
-{"id":"A1-001","lens":"domain","kind":"invariant","certainty":"fact","impact":"high","claim":"An invoice can only be paid while ISSUED.","evidence":[{"repo":"billing","path":"src/invoices/invoice.service.ts","lines":"16-18","quote":"if (invoice.status !== InvoiceStatus.ISSUED) {"}]}
-{"id":"A1-004","lens":"domain","kind":"lifecycle","certainty":"inference","impact":"medium","claim":"No code in billing moves an invoice from DRAFT to ISSUED.","reasoning":"create() sets DRAFT and pay() sets PAID; the only ISSUED reference is the guard in pay().","based_on":["A1-002"],"evidence":[{"repo":"billing","search":"grep -rn 'InvoiceStatus.ISSUED' src","result":"1 match: the guard in pay()"}]}
-{"id":"A1-005","lens":"domain","kind":"actor","certainty":"hypothesis","impact":"low","claim":"Invoices are created by back-office staff.","how_to_verify":"Look for auth guards or roles on POST /invoices."}
-{"id":"A1-006","lens":"domain","kind":"lifecycle","certainty":"unknown","impact":"high","claim":"Who issues invoices?","why_unknown":"No code in scope sets ISSUED; it may happen in another system or by hand in the database. The billing team could answer."}
+{"id":"A1-001","lens":"domain","kind":"invariant","certainty":"fact","impact":"high","claim":"Uma fatura só pode ser paga enquanto estiver ISSUED.","evidence":[{"repo":"billing","path":"src/invoices/invoice.service.ts","lines":"16-18","quote":"if (invoice.status !== InvoiceStatus.ISSUED) {"}]}
+{"id":"A1-004","lens":"domain","kind":"lifecycle","certainty":"inference","impact":"medium","claim":"Nenhum código do billing move uma fatura de DRAFT para ISSUED.","reasoning":"create() grava DRAFT e pay() grava PAID; a única referência a ISSUED é a checagem em pay().","based_on":["A1-002"],"evidence":[{"repo":"billing","search":"grep -rn 'InvoiceStatus.ISSUED' src","result":"1 ocorrência: a checagem em pay()"}]}
+{"id":"A1-005","lens":"domain","kind":"actor","certainty":"hypothesis","impact":"low","claim":"As faturas são criadas pela equipe de back-office.","how_to_verify":"Procurar guards de autenticação ou papéis em POST /invoices."}
+{"id":"A1-006","lens":"domain","kind":"lifecycle","certainty":"unknown","impact":"high","claim":"Quem emite as faturas?","why_unknown":"Nenhum código no escopo grava ISSUED; pode acontecer em outro sistema ou direto no banco. O time de billing saberia responder."}
 ```
 
 ## Writing discipline

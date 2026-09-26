@@ -141,7 +141,8 @@ def main(argv=None) -> int:
         r = evidence.check(ws)
         t = r["totals"]
         print(f"{t['findings']} findings: {t['ok']} ok, {t['evidence_error']} evidence errors, {t['schema_error']} schema errors, "
-              f"{t['relocated']} relocated; duplicates {len(r['duplicates'])}. Report: verification/mechanical.md")
+              f"{t['relocated']} relocated; {t['wrong_language']} not in the report language; duplicates {len(r['duplicates'])}. "
+              f"Report: verification/mechanical.md")
     elif a.cmd == "digest":
         d = digest.build(ws)
         t = d["totals"]

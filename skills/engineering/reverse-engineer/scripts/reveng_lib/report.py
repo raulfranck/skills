@@ -346,7 +346,7 @@ def render_directive(node: dict, ctx: Ctx) -> str:
     if name == "risk":
         sev = a.get("severity", "").strip()
         tone = SEVERITY_TONE.get(sev.lower(), "warn")
-        badges = f'<span class="badge sev-{slugify(sev)}">impacto {esc(sev)}</span>' if sev else ""
+        badges = f'<span class="badge sev-{slugify(sev)}">severidade {esc(sev)}</span>' if sev else ""
         if a.get("likelihood"):
             lk = a["likelihood"]
             badges += f' <span class="badge sev-{slugify(lk)}">probabilidade {esc(lk)}</span>'
@@ -512,8 +512,8 @@ def appendix_html(ctx: Ctx) -> str:
     for f in ctx.findings:
         groups.setdefault(f.get("lens") or "outros", []).append(f)
     parts = ['<h2 id="evidencias">Evidências</h2>',
-             '<p class="note">Cada marcador numerado no texto leva a uma evidência abaixo. As afirmações ficam no idioma '
-             'interno da análise, com o grau de certeza e o trecho de código que as sustenta.</p>',
+             '<p class="note">Cada marcador numerado no texto leva a uma evidência abaixo, com o grau de certeza e o trecho '
+             'de código que a sustenta.</p>',
              '<div class="appendix">']
     for lens in sorted(groups, key=lambda l: list(LENS_LABELS).index(l) if l in LENS_LABELS else 99):
         items = []

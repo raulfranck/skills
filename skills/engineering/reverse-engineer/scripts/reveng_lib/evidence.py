@@ -14,6 +14,11 @@ CERTAINTIES = ("fact", "inference", "hypothesis", "unknown")
 IMPACTS = ("high", "medium", "low")
 ID_RX = re.compile(r"^[A-Z]+[0-9]*-[0-9]{3,}$")
 GAP_RX = re.compile(r"<REDACTED>|\.\.\.|…")
+STOPWORDS = {
+    "en": {"the", "and", "is", "are", "with", "of", "that", "which", "for", "when", "without", "from", "this", "not", "it"},
+    "pt": {"de", "que", "e", "o", "a", "os", "as", "com", "não", "para", "um", "uma", "no", "na", "do", "da", "se", "por", "em"},
+    "es": {"de", "que", "y", "el", "la", "los", "las", "con", "no", "para", "un", "una", "en", "por", "se"},
+}
 FINDING_GLOBS = ("recon/*.findings.jsonl", "lenses/*.findings.jsonl", "runtime/*.findings.jsonl",
                  "synthesis/*.findings.jsonl")
 
@@ -33,6 +38,19 @@ def _quote_in(hay: str, quote: str) -> bool:
             return False
         pos = i + len(p)
     return True
+
+
+def wrong_language(text: str, report_language: str) -> bool:
+    """True when prose written for a pt/es/en report reads as another of those languages."""
+    target = (report_language or "").lower()[:2]
+    if target not in STOPWORDS:
+        return False
+    words = re.findall(r"[a-záéíóúâêôãõçñ]+", text.lower())
+    if len(words) < 6:
+        return False
+    scores = {lang: sum(w in sw for w in words) for lang, sw in STOPWORDS.items()}
+    best = max(scores, key=scores.get)
+    return best != target and scores[best] >= 3 and scores[best] > 1.5 * scores[target]
 
 
 def _parse_lines(value) -> tuple[int, int] | None:
@@ -134,7 +152,9 @@ def check(workspace: str | Path) -> dict:
         return text_cache[p]
 
     results = {}
-    totals = {"findings": len(findings), "ok": 0, "schema_error": 0, "evidence_error": 0, "relocated": 0}
+    totals = {"findings": len(findings), "ok": 0, "schema_error": 0, "evidence_error": 0, "relocated": 0,
+              "wrong_language": 0}
+    language = manifest.get("report_language", "")
     seen_ids: set[str] = set()
     for f in findings:
         errors, warnings = _schema(f)
@@ -225,6 +245,10 @@ def check(workspace: str | Path) -> dict:
         for ref in f.get("based_on") or []:
             if ref not in ids:
                 errors.append(f"based_on references unknown finding {ref}")
+        prose = " ".join(str(f.get(k) or "") for k in ("claim", "reasoning", "how_to_verify", "why_unknown"))
+        if wrong_language(prose, language):
+            warnings.append(f"written in another language than the report ({language})")
+            totals["wrong_language"] += 1
         status = "schema_error" if errors else ("evidence_error" if bad else "ok")
         totals[status] += 1
         if any(r["status"] == "relocated" for r in ev_results):
@@ -243,7 +267,8 @@ def to_markdown(r: dict) -> str:
     t = r["totals"]
     lines = ["# Mechanical evidence check", "",
              f"{t['findings']} findings: {t['ok']} ok, {t['evidence_error']} with evidence errors, "
-             f"{t['schema_error']} with schema errors, {t['relocated']} with relocated quotes.", ""]
+             f"{t['schema_error']} with schema errors, {t['relocated']} with relocated quotes, "
+             f"{t.get('wrong_language', 0)} not in the report language.", ""]
     rows = []
     for rel, rep in r["files"].items():
         per = [v for v in r["findings"].values() if v["file"] == rel]

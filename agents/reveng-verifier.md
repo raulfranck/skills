@@ -26,7 +26,7 @@ For each finding in scope:
    - `unverifiable`: the cited material is missing or unreadable.
    For an inference, also judge the reasoning: does it follow from its `based_on` findings and evidence?
 3. Append one verdict line to the verdict file of the findings file it came from (format in the workspace reference your brief points to):
-   `{"id": "A1-004", "verdict": "downgraded", "certainty": "hypothesis", "reason": "..."}`
+   `{"id": "A1-004", "verdict": "downgraded", "certainty": "hypothesis", "reason": "..."}`, with the reason in the report language.
 
 Done when every finding in scope has exactly one verdict line. Reply in five lines at most, with counts per verdict.
 
