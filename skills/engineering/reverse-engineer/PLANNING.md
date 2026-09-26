@@ -2,6 +2,8 @@
 
 Turn the recon metrics into the smallest set of tasks that still covers every lens with evidence. Cost grows with agent runs, so bundle lenses whose evidence overlaps and split only where one worker could not cover the ground in its turn budget.
 
+The bundles below are the plan, not a suggestion. A focus question changes what the tasks look at, never how many there are. Split a bundle only when the user asks for it at the approval step.
+
 ## Inputs
 
 - `recon/summary.json`: per repository, non-test source LOC, modules, languages, commits and history depth, IaC, CI, contracts, migrations, routes, messaging names.
@@ -52,12 +54,12 @@ Record each skip in `plan.json` under `skipped`, with its reason:
 
 ## Models
 
-- Recon: haiku (agent default). Analysts, runtime and verifiers: sonnet. Synthesizer: opus.
+- Recon: haiku (agent default). Analysts, runtime, verifiers and the editor: sonnet. Synthesizer: opus.
 - Propose opus for the risk task when the system is L or XL, or when the focus questions are about risk, and say why. The user decides.
 
 ## Verification
 
-One verifier per group of up to 3 findings files (roughly 150 findings), all in parallel. Include the recon and runtime findings files.
+One verifier per group of up to 5 findings files, all in parallel: a single verifier for an S run. Include the recon and runtime findings files.
 
 ## Concurrency
 
@@ -65,6 +67,6 @@ Dispatch at most 6 workers at a time and queue the rest.
 
 ## Presenting the plan
 
-Show a compact table: each wave with its tasks (ID, lenses, scope, model), total agent runs by model, skipped lenses with reasons, and a rough wall time (5 to 15 minutes per wave). Ask for approval: the user may trim, merge or add tasks. Write `plan.json` and `plan.md` after approval.
+Show a compact table: each wave with its tasks (ID, lenses, scope, model), total agent runs by model (recon, analysts, verifiers, synthesizer and editor), skipped lenses with reasons, and a rough wall time (5 to 15 minutes per wave). An S run is 7 agent runs: 1 recon, 3 analysts, 1 verifier, 1 synthesizer, 1 editor. Ask for approval: the user may trim, merge or add tasks. Write `plan.json` and `plan.md` after approval.
 
 These thresholds are a starting point. Calibrate them after pilot runs and record the change here.

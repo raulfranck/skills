@@ -18,10 +18,13 @@ One directory per run, created by `reveng.py init`. Everything a run produces li
 ├── verification/
 │   ├── mechanical.json · .md  evidence check (script)
 │   └── <task>.verdicts.jsonl  verifiers, one file per findings file
-└── synthesis/
-    ├── digest.json · .md      findings merged with checks and verdicts (script)
-    ├── synthesis.findings.jsonl   findings added while synthesising
-    └── system-model.md · followups.md     synthesizer
+├── synthesis/
+│   ├── digest.json · .md      findings merged with checks and verdicts (script)
+│   ├── synthesis.findings.jsonl   findings added while synthesising
+│   ├── report.draft.md        synthesizer
+│   ├── report.md              editor
+│   └── lint.json · .md        language and structure check (script)
+└── report.html                the final report (script: render)
 ```
 
 ## plan.json
@@ -50,14 +53,16 @@ One directory per run, created by `reveng.py init`. Everything a run produces li
     ]},
     {"wave": "S", "tasks": [
       {"id": "S1", "agent": "reveng-synthesizer", "model": "opus",
-       "outputs": {"model": "synthesis/system-model.md", "followups": "synthesis/followups.md"}}
+       "outputs": {"draft": "synthesis/report.draft.md"}},
+      {"id": "E1", "agent": "reveng-editor",
+       "outputs": {"report": "synthesis/report.md", "html": "report.html"}}
     ]}
   ],
   "skipped": [{"lens": "evolution", "repo": "billing", "reason": "shallow history"}]
 }
 ```
 
-- `id` doubles as the finding ID prefix: `A*` wave A, `B*` wave B, `R*` runtime (runs with wave A), `V*` verification, `S1` synthesis. Recon tasks use `RC1`, `RC2`, ... and are not part of the plan.
+- `id` doubles as the finding ID prefix: `A*` wave A, `B*` wave B, `R*` runtime (runs with wave A), `V*` verification, `S1` synthesis, `E1` editing. Recon tasks use `RC1`, `RC2`, ... and are not part of the plan.
 - `repo` is a repository name, or `*` for a task that spans all repositories. `paths` narrows a partitioned task to module prefixes.
 - `model` overrides the agent's default model; omit it to keep the default.
 - `inputs` lists extra workspace files the task reads; `outputs` lists every file the task must write.

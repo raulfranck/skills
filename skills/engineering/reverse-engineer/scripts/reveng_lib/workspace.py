@@ -7,7 +7,7 @@ from pathlib import Path
 from . import common as C
 
 SUBDIRS = ("inputs", "recon", "lenses", "verification", "synthesis", "runtime", "repos")
-PHASES = ("scope", "recon", "plan", "wave-A", "wave-B", "verification", "synthesis")
+PHASES = ("scope", "recon", "plan", "wave-A", "wave-B", "verification", "synthesis", "report")
 
 
 def _repo_entry(name: str, path: Path) -> dict:
@@ -52,7 +52,8 @@ def _exclude_from_git(workspace: Path) -> str | None:
     return None
 
 
-def init(workspace: str | Path, repos: list[str], focus: list[str], language: str, runtime: bool, force: bool = False) -> str:
+def init(workspace: str | Path, repos: list[str], focus: list[str], language: str, runtime: bool, force: bool = False,
+         audience: str = "dev") -> str:
     ws = Path(workspace).resolve()
     manifest_path = ws / "manifest.json"
     if manifest_path.exists() and not force:
@@ -77,6 +78,7 @@ def init(workspace: str | Path, repos: list[str], focus: list[str], language: st
         "created_at": C.now_iso(),
         "workspace": C.posix(ws),
         "report_language": language,
+        "audience": audience,
         "focus": focus,
         "runtime_opt_in": runtime,
         "repos": entries,
@@ -84,7 +86,7 @@ def init(workspace: str | Path, repos: list[str], focus: list[str], language: st
     }
     manifest["phases"]["scope"] = {"status": "done", "at": C.now_iso()}
     C.write_json(manifest_path, manifest)
-    scope_md = [f"# Scope: {ws.name}", "", f"- Report language: {language}", f"- Runtime probing: {'yes' if runtime else 'no'}",
+    scope_md = [f"# Scope: {ws.name}", "", f"- Report language: {language}", f"- Audience: {audience}", f"- Runtime probing: {'yes' if runtime else 'no'}",
                 "- Focus questions:" if focus else "- Focus questions: none"]
     scope_md += [f"  - {q}" for q in focus]
     scope_md += ["", "## Repositories"] + [
@@ -126,7 +128,8 @@ def _outputs(task: dict) -> list[str]:
 def status(workspace: str | Path) -> str:
     ws = Path(workspace).resolve()
     manifest = C.read_json(ws / "manifest.json")
-    lines = [f"Run {manifest['run_id']} · language {manifest.get('report_language')} · runtime {manifest.get('runtime_opt_in')}"]
+    lines = [f"Run {manifest['run_id']} · language {manifest.get('report_language')} · "
+             f"audience {manifest.get('audience', 'dev')} · runtime {manifest.get('runtime_opt_in')}"]
     lines.append("Phases: " + ", ".join(f"{k}={v.get('status')}" for k, v in manifest.get("phases", {}).items()))
     for r in manifest["repos"]:
         name = r["name"]

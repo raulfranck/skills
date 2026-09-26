@@ -16,4 +16,4 @@ Nenhuma ainda.
 
 Os workers das skills desta área ficam em [agents/](../../agents/), com o prefixo da skill dona:
 
-- `reveng-*`: workers do `reverse-engineer` (recon, analyst, verifier, synthesizer, runtime).
+- `reveng-*`: workers do `reverse-engineer` (recon, analyst, verifier, synthesizer, editor, runtime).

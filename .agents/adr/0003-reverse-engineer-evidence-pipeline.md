@@ -4,7 +4,7 @@ Analysing one or many repositories in a single agent session overflows the conte
 
 ## Decision
 
-1. **Five workers, not one per lens.** `reveng-recon` (haiku), `reveng-analyst` (sonnet), `reveng-verifier` (sonnet), `reveng-synthesizer` (opus) and `reveng-runtime` (sonnet, opt-in). The analyst is generic; what it analyses comes from the lens guides named in its brief.
+1. **Six workers, not one per lens.** `reveng-recon` (haiku), `reveng-analyst` (sonnet), `reveng-verifier` (sonnet), `reveng-synthesizer` (opus), `reveng-editor` (sonnet) and `reveng-runtime` (sonnet, opt-in). The analyst is generic; what it analyses comes from the lens guides named in its brief.
 2. **Lens knowledge lives in `lenses/<lens>.md`.** Each guide is the single source of truth for its lens and loads only in the analysts that apply it. Planning can therefore bundle lenses whose evidence overlaps into one task (cheaper on small repositories) or split one lens across module groups (large ones) without new agent definitions.
 3. **Findings with certainty, checked twice.** Workers write JSON-line findings (fact, inference, hypothesis, unknown) with quoted evidence. A script checks every citation mechanically; an independent verifier judges semantic support for the findings that matter; the digest drops refuted findings and downgrades weak ones before synthesis.
 4. **Scripts do the counting.** Inventory, module dependencies, git behaviour (hotspots, change coupling, knowledge), integration signals, evidence checks and the digest are deterministic Python: free, repeatable, and exact where models estimate.
@@ -20,4 +20,4 @@ The orchestrator stays thin. It passes paths rather than content, never analyses
 ## Consequences
 
 - Size thresholds and bundles in `PLANNING.md` are first guesses; calibrate them after pilot runs.
-- The report format (`SYNTHESIS-FORMAT.md`) is provisional and will be designed separately. Section numbers stay stable so a new design can map onto them.
+- The report itself is covered by [ADR 0005](0005-html-report-with-language-pass.md).

@@ -8,10 +8,14 @@ Commands:
   mark     record a phase status in the manifest
   check    mechanical evidence check over every findings file
   digest   merge findings, checks and verdicts into synthesis/digest.md
+  lint     language and structure check of the report source (synthesis/lint.md)
+  render   lint, then build the self-contained report.html at the workspace root
 """
 from __future__ import annotations
 
 import argparse
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -19,7 +23,7 @@ sys.dont_write_bytecode = True  # keep the installed skill folder free of __pyca
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from reveng_lib import common as C  # noqa: E402
-from reveng_lib import digest, evidence, gitmetrics, imports, inventory, signals, workspace  # noqa: E402
+from reveng_lib import digest, evidence, gitmetrics, imports, inventory, report, signals, workspace  # noqa: E402
 
 
 def _recon(ws: Path, only: str | None, force: bool) -> str:
@@ -90,6 +94,8 @@ def main(argv=None) -> int:
     s.add_argument("--focus", action="append", default=[], help="focus question (repeatable)")
     s.add_argument("--language", default="en")
     s.add_argument("--runtime", action="store_true", help="the user opted in to runtime probing")
+    s.add_argument("--audience", default="dev", choices=["dev", "lead", "non-technical"],
+                   help="who the report is written for")
     s.add_argument("--force", action="store_true")
     s = sub.add_parser("recon")
     s.add_argument("--workspace", required=True)
@@ -106,6 +112,13 @@ def main(argv=None) -> int:
     s.add_argument("--workspace", required=True)
     s = sub.add_parser("digest")
     s.add_argument("--workspace", required=True)
+    s = sub.add_parser("lint")
+    s.add_argument("--workspace", required=True)
+    s.add_argument("--file", help="report source, default synthesis/report.md")
+    s = sub.add_parser("render")
+    s.add_argument("--workspace", required=True)
+    s.add_argument("--file", help="report source, default synthesis/report.md")
+    s.add_argument("--open", action="store_true", help="open report.html in the default browser")
     a = p.parse_args(argv)
     try:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
@@ -117,7 +130,7 @@ def main(argv=None) -> int:
         print(f"No manifest at {C.posix(ws)}. Run init first.", file=sys.stderr)
         return 2
     if a.cmd == "init":
-        print(workspace.init(ws, a.repo, a.focus, a.language, a.runtime, a.force))
+        print(workspace.init(ws, a.repo, a.focus, a.language, a.runtime, a.force, a.audience))
     elif a.cmd == "recon":
         print(_recon(ws, a.repo, a.force))
     elif a.cmd == "status":
@@ -134,7 +147,28 @@ def main(argv=None) -> int:
         t = d["totals"]
         print(f"{t['findings']} findings kept, {t['refuted']} refuted; by certainty {t['by_certainty']}. "
               f"Digest: synthesis/digest.md")
+    elif a.cmd == "lint":
+        r = report.lint_only(ws, a.file)
+        print(f"lint: {r['errors']} errors, {r['warnings']} warnings. Report: synthesis/lint.md")
+    elif a.cmd == "render":
+        r = report.build(ws, a.file)
+        print(f"lint: {r['errors']} errors, {r['warnings']} warnings (synthesis/lint.md); {r['terms']} terms with tooltips.")
+        print(f"html: {r['html']}")
+        if a.open:
+            _open(r["html"])
     return 0
+
+
+def _open(path: str) -> None:
+    try:
+        if sys.platform.startswith("win"):
+            os.startfile(path)  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            subprocess.run(["open", path], check=False)
+        else:
+            subprocess.run(["xdg-open", path], check=False)
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ You are the independent verifier of a reverse-engineering run: a sceptical reade
 
 Your brief gives the findings files to verify, `verification/mechanical.json`, the protocol path, the workspace (the manifest lists repository paths) and your verdict output paths.
 
-**In scope**: every `fact` and `inference` with impact `high` or `medium`, plus every finding whose mechanical status is not `ok`. Low-impact findings that passed the mechanical check stand without review.
+**In scope**: every `fact` and `inference` with impact `high`, plus every finding whose mechanical status is not `ok`. Findings of medium or low impact that passed the mechanical check stand without review: the script already confirmed that their quotes exist at the cited lines.
 
 For each finding in scope:
 
